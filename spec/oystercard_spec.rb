@@ -1,7 +1,7 @@
 require 'oystercard'
 
 describe Oystercard do
-
+  let (:station) {double :station}
   shared_context 'fully topped up oystercard' do
     before do
       @balance_limit = Oystercard::BALANCE_LIMIT
@@ -42,12 +42,18 @@ describe Oystercard do
   describe '#touch_in' do
     it 'can touch in' do
       subject.top_up(Oystercard::MINIMUM_AMOUNT)
-      subject.touch_in
+      subject.touch_in(station)
       expect(subject).to be_in_journey
     end
 
     it 'throws an error if balance is less than minimum amount' do
-      expect{ subject.touch_in }.to raise_error "Insufficient balance on card"
+      expect{ subject.touch_in(station) }.to raise_error "Insufficient balance on card"
+    end
+
+    it "remembers the entry station" do
+      subject.top_up(1)
+      subject.touch_in(station)
+      expect(subject.entry_station).to eq station
     end
   end
 
@@ -55,14 +61,20 @@ describe Oystercard do
     include_context "fully topped up oystercard"
 
     it 'can touch out' do
-      subject.touch_in
+      subject.touch_in(station)
       subject.touch_out
       expect(subject).not_to be_in_journey
     end
 
     it 'deducts amount from balance for journey' do
-      subject.touch_in
+      subject.touch_in(station)
       expect {subject.touch_out}.to change{subject.balance}.by(-Oystercard::MINIMUM_AMOUNT)
+    end
+
+    it "forgets the entry station" do
+      subject.touch_in(station)
+      subject.touch_out
+      expect(subject.entry_station).to eq nil
     end
   end
 
