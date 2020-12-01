@@ -33,40 +33,6 @@ describe Oystercard do
     end
  end
 
-  describe '#deduct' do
-    it 'should deduct amount from balance' do
-      subject.top_up(20)
-      expect{ subject.deduct(5) }.to change{ subject.balance}.by (-5)
-    end
-  end
-
-  # describe '#touch_in' do
-  #
-  #   it 'Should return true if card has been touched in' do
-  #     expect(subject.touch_in).to eq true
-  #   end
-  # end
-  #
-  # describe '#touch_out' do
-  #
-  #   it 'Should return true if card has been touched out' do
-  #     expect(subject.touch_out).to eq false
-  #   end
-  # end
-  #
-  # describe '#in_journey?' do
-  #   it 'Should return true if in journey' do
-  #     subject.touch_in
-  #     expect(subject.in_journey?).to eq true
-  #   end
-  #
-  #   it 'Should return false if not in journey' do
-  #     subject.touch_out
-  #     expect(subject.in_journey?).to eq false
-  #   end
-  # end
-
-
   describe '#in_journey?' do
     it 'is initially not in a journey' do
       expect(subject).not_to be_in_journey
@@ -74,18 +40,29 @@ describe Oystercard do
   end
 
   describe '#touch_in' do
-    include_context "fully topped up oystercard"
     it 'can touch in' do
+      subject.top_up(Oystercard::MINIMUM_AMOUNT)
       subject.touch_in
       expect(subject).to be_in_journey
+    end
+
+    it 'throws an error if balance is less than minimum amount' do
+      expect{ subject.touch_in }.to raise_error "Insufficient balance on card"
     end
   end
 
   describe '#touch_out' do
+    include_context "fully topped up oystercard"
+
     it 'can touch out' do
       subject.touch_in
       subject.touch_out
       expect(subject).not_to be_in_journey
+    end
+
+    it 'deducts amount from balance for journey' do
+      subject.touch_in
+      expect {subject.touch_out}.to change{subject.balance}.by(-Oystercard::MINIMUM_AMOUNT)
     end
   end
 
