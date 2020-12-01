@@ -62,19 +62,29 @@ describe Oystercard do
 
     it 'can touch out' do
       subject.touch_in(station)
-      subject.touch_out
+      subject.touch_out(station)
       expect(subject).not_to be_in_journey
     end
 
     it 'deducts amount from balance for journey' do
       subject.touch_in(station)
-      expect {subject.touch_out}.to change{subject.balance}.by(-Oystercard::MINIMUM_AMOUNT)
+      expect {subject.touch_out(station)}.to change{subject.balance}.by(-Oystercard::MINIMUM_AMOUNT)
     end
 
     it "forgets the entry station" do
       subject.touch_in(station)
-      subject.touch_out
+      subject.touch_out(station)
       expect(subject.entry_station).to eq nil
+    end
+  end
+
+  describe '#trips' do
+    pending "need to figure out how to test for hash"
+    it 'returns all previous trips' do
+      subject.top_up(Oystercard::MINIMUM_AMOUNT)
+      subject.touch_in(station)
+      subject.touch_out(station)
+      expect(subject.trips).to eq {1, [station,station]}
     end
   end
 
