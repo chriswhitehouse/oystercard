@@ -1,8 +1,10 @@
 require 'oystercard'
+require 'journey'
+require 'station'
 
 describe Oystercard do
-  let (:entry_station) {double :station}
-  let (:exit_station) {double :station}
+  let (:entry_station) {Station.new("Waterloo", 1)}
+  let (:exit_station) {Station.new("Mordon", 5)}
 
 
   shared_context 'fully topped up oystercard and touched in' do
@@ -48,7 +50,7 @@ describe Oystercard do
 
   describe '#in_journey?' do
     it 'is initially not in a journey' do
-      expect(subject).not_to be_in_journey
+      expect(subject.journey).not_to be_in_journey
     end
   end
 
@@ -56,7 +58,7 @@ describe Oystercard do
     it 'can touch in' do
       subject.top_up(Oystercard::MINIMUM_AMOUNT)
       subject.touch_in(entry_station)
-      expect(subject).to be_in_journey
+      expect(subject.journey).to be_in_journey
     end
 
     it 'throws an error if balance is less than minimum amount' do
@@ -69,7 +71,7 @@ describe Oystercard do
 
     it 'can touch out' do
       subject.touch_out(exit_station)
-      expect(subject).not_to be_in_journey
+      expect(subject.journey).not_to be_in_journey
     end
 
     it 'deducts amount from balance for journey' do
@@ -82,22 +84,21 @@ describe Oystercard do
     end
   end
 
-  describe '#trips' do
+  describe '#journeys' do
     it 'returns an empty list of journeys by default' do
-      expect(subject.trips).to be_empty
+      expect(subject.journeys).to be_empty
     end
   end
 
-  describe '#trips after touch in' do
+  describe '#journeys after touch in' do
     include_context 'fully topped up oystercard and touched in and touched out'
-    let(:journey){ {entry_station: entry_station, exit_station: exit_station} }
 
-    it 'returns all previous trips' do
-      expect(subject.trips).to include journey
+    it 'returns all previous journeys' do
+      expect(subject.journeys).to include instance_of Journey
     end
 
     it 'touching in and out creates one journey' do
-      expect(subject.trips.count).to eq 2
+      expect(subject.journeys.count).to eq 1
     end
   end
 end
